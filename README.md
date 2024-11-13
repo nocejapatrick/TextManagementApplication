@@ -5,7 +5,7 @@ npm 10.8.3
 ## Setup Server
 1. Change directory from root to server folder
 2. Then npm install
-3. Run npm dev
+3. Run script: npm run dev
 4. Server runs localhost:3000
 
 ## Server API
