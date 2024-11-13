@@ -14,9 +14,13 @@
     "ejs": "~2.6.1",
     "express": "~4.16.1",
     "express-async-handler": "^1.2.0",
+    "express-fileupload": "^1.5.1",
+    "fs": "^0.0.1-security",
     "http-errors": "~1.6.3",
     "mongoose": "^8.7.3",
-    "morgan": "~1.9.1"
+    "morgan": "~1.9.1",
+    "serialport-gsm": "^4.0.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"

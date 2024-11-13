@@ -1,5 +1,5 @@
 <%- include('partials/header'); %>
-    <div class="min-h-screen bg-gray-100 text-gray-900 flex justify-center">
+    <!-- <div class="min-h-screen bg-gray-100 text-gray-900 flex justify-center">
       <div class="max-w-screen-xl m-0 sm:m-10 bg-white shadow sm:rounded-lg flex justify-center flex-1">
           <div class="lg:w-1/2 xl:w-5/12 p-6 sm:p-12">
               <div class="mt-12 flex flex-col items-center">
@@ -64,6 +64,30 @@
           </div>
          
       </div>
-  </div>
+  </div> -->
+
+  <form  action="/upload-csv/send-email" method="POST" enctype="multipart/form-data">
+    <input type="file" name="file" id="myFiles">
+    <button type="submit" class="bg-gray-100">Submit</button>
+  </form>
+
+  <!-- <script>
+    let myForm = document.querySelector('#send-users');
+    
+    myForm.addEventListener('submit',async function(e){
+        e.preventDefault();
+        const myFiles = document.querySelector('#myFiles');
+        const formData = new FormData();
+        Object.keys(myFiles).forEach(key=>{
+            formData.append(myFiles.item(key).name, myFiles.item(key));
+        });
+        const response = await fetch('/send-email/',{
+            method: 'POST',
+            body: formData
+        });
+        const json = await response.json();
+        console.log(json);
+    });
+  </script> -->
  
 <%- include('partials/footer'); %>
