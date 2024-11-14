@@ -46,11 +46,11 @@ const onOpen = async () =>{
 
 const sendMessage = async(number,message) => {
     try{
-        modem.sendSMS(number, message, false, (res)=>{
+        modem.sendSMS(number, message, true, (res)=>{
             console.log(res)
         });
     }catch(error){
-        console.log(error)
+        return res.status(400).json({ msg: error});
     }
    
 }
