@@ -1,5 +1,6 @@
-let serialportgsm = require('serialport-gsm')
-let modem = serialportgsm.Modem()
+const serialportgsm = require('serialport-gsm')
+// const SMSMessage = require('./models/SMSMessage');
+const modem = serialportgsm.Modem()
 
 const options = {
     baudRate: 115200,
@@ -97,6 +98,15 @@ const sendSMS = async (req, res) => {
   
 };
 
+const deleteAllMessageFromInbox = async ()=>{
+    modem.deleteAllSimMessages((res)=>{
+        console.log(res)
+    })
+}
+
+// const smsMessage = new SMSMessage({recipient:"09354037946",sender:"09477704495", message:"A sample message"});
+// smsMessage.save().then(()=>console.log("message saved"));
+
 
 module.exports = {
     openConnection,
@@ -105,5 +115,6 @@ module.exports = {
     onMemoryFull,
     onNewMessage,
     sendMessage,
-    sendSMS
+    sendSMS,
+    deleteAllMessageFromInbox
 }

@@ -8,9 +8,9 @@ var logger = require('morgan');
 require('dotenv').config()
 
 
-// const mongoose = require('mongoose');
-// mongoose.connect(process.env.MONGODB_HOST+process.env.MONGODB_COLLECTION)
-// .then(()=>console.log("CONNECTED"))
+//const mongoose = require('mongoose');
+//mongoose.connect(process.env.MONGODB_HOST+process.env.MONGODB_COLLECTION)
+//.then(()=>console.log("CONNECTED"))
 // Routes Imports
 var indexRouter = require('./routes/index');
 // End of Routes Imports
@@ -61,14 +61,19 @@ const {
   onOpen,
   onMemoryFull,
   onNewMessage, 
-  onError 
+  onError,
+  deleteAllMessageFromInbox
 } = require("./controllers/GSMController");
+
 
 openConnection();
 onOpen();
 onError();
 onMemoryFull();
 onNewMessage();
+deleteAllMessageFromInbox();
 // End of GSM
+
+
 
 module.exports = app;
