@@ -29,7 +29,7 @@ const checkList = async ()=>{
 
 const openConnection = async () => {
     let checklist = await checkList();
-    modem.open(checklist, options, {});
+    modem.open(process.env.COM_PORT, options, {});
 };
 
 const closeConnection = async () => {
