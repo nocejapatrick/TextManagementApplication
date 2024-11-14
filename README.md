@@ -11,6 +11,6 @@ npm 10.8.3
 ## Server API
 There is a temporary API token for temporary security, kindly add it on the header authorization first for requesting on the api. Check env.
 
-| url            | paramaters      | 
-|---------------:|-----------------|
-| api/v1/text-sms| number&message  |
+| url            |method    |parameters      | 
+|---------------:|----------|----------------|
+| api/v1/text-sms|POST      |number&message  |

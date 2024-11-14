@@ -46,7 +46,7 @@ const onOpen = async () =>{
 
 const sendMessage = async(number,message) => {
     try{
-        modem.sendSMS(number, message, true, (res)=>{
+        modem.sendSMS(number, message, false, (res)=>{
             console.log(res)
         });
     }catch(error){
