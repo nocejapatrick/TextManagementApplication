@@ -71,7 +71,7 @@ onOpen();
 onError();
 onMemoryFull();
 onNewMessage();
-deleteAllMessageFromInbox();
+// deleteAllMessageFromInbox();
 // End of GSM
 
 
