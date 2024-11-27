@@ -2,7 +2,14 @@ const serialportgsm = require('serialport-gsm')
 const SMSMessage = require('../models/SMSMessage');
 const SMSTransaction = require('../models/SMSTransaction');
 const SMSTransactionMessage = require('../models/SMSTransactionMessage');
+const SMSQuestionAnswer = require('../models/SMSQuestionAnswer');
+const axios = require('axios');
 const modem = serialportgsm.Modem()
+const https = require('https');
+
+const agent = new https.Agent({  
+    rejectUnauthorized: false
+  });
 
 const questions = [
     {
@@ -140,6 +147,7 @@ const savingTransactionMessage = async(newMessage)=>{
     const { transactionNumber, recipient, sender, message, dateTimeSent } = newMessage;
 
     const smsTransaction = await SMSTransaction.findOne({recipient: transactionNumber, isOpen: true});
+  
 
     const smsMessage = new SMSMessage({
         recipient: recipient,
@@ -158,6 +166,8 @@ const savingTransactionMessage = async(newMessage)=>{
         let currentQuestionId = smsTransaction.currentQuestionId;
         let currentQuestion = questions[questions.findIndex(x=>x.id== currentQuestionId)];
      
+    
+
 
         if(!currentQuestion.answers.includes(message)){
             if(sender == smsTransaction.recipient){
@@ -178,7 +188,22 @@ const savingTransactionMessage = async(newMessage)=>{
             }else{
                 console.log("right")
                 let concatReply = "_"+message;
+                const smsQuestionAnswer = new SMSQuestionAnswer({smsTransactionId: smsTransaction._id, questionId: currentQuestion.id, answer: message});
+                await smsQuestionAnswer.save();
+
                 if(currentQuestion[concatReply] == 0){
+                    const getSMSQuestionAnswers = await SMSQuestionAnswer.find({smsTransactionId: smsTransaction._id});
+                    const sendSMSTransactionEnd = {
+                        transactionId: smsTransaction._id,
+                        messages: getSMSQuestionAnswers
+                    };
+
+                    const res = await axios.post('https://setg.tesda.gov.ph/api/sms', sendSMSTransactionEnd,
+                    {
+                        httpsAgent: agent
+                    });
+                    console.log(res);
+
                     await smsTransaction.updateOne({isOpen: false});
                     await sendMessage(smsTransaction.recipient,
                         "Thank you for the successfull survey"
@@ -215,7 +240,14 @@ const sendMessage = async(number,message) => {
             dateTimeSent: Date.now()
         }
         await savingTransactionMessage(newMessage);
-         modem.sendSMS(number, message, false, async (res)=>{});
+        await modem.sendSMS(number, message, false, async (res)=>{
+            if(res?.data?.message != null){
+                console.log(res.data.message)
+                console.log(res.data.recipient)
+                console.log(res.status)
+            }
+       
+         });
     }catch(error){
         throw new Error(error)
     }
@@ -233,7 +265,7 @@ const onNewMessage = async() =>{
             message: newMessage[0].message,
             dateTimeSent: new Date(newMessage[0].dateTimeSent)
         };
-         console.log(message);
+         console.log(newMessage);
         savingTransactionMessage(message);
     })
     
@@ -293,7 +325,6 @@ const sendSMSTransaction = async()=>{
                 await sleep(2000);
                 console.log("Sending message"+questions[j].message[k]);
                 sendMessage(numbersToSend[i],questions[j].message[k]);
-                // console.log("Sending message"+questions[j].message[k]);
             }
           
             console.log("Sending to:"+numbersToSend[i]);
@@ -301,7 +332,7 @@ const sendSMSTransaction = async()=>{
      }
 }
 
-    sendSMSTransaction();
+    // sendSMSTransaction();
 
 const deleteAllMessageFromInbox = async ()=>{
     modem.deleteAllSimMessages((res)=>{
@@ -312,6 +343,7 @@ const deleteAllMessageFromInbox = async ()=>{
 async function findMessage(){
     const smsTransaction = new SMSTransaction({recipient: "639173239157",isOpen:true, open_at: Date.now(), currentQuestionId: 1});
         smsTransaction.save().then(()=>console.log("transaction saved"));
+        
     // const smsTransaction = await SMSTransaction.findOneAndUpdate(
     //     { _id: "673ea4e781dfcda80416a717", 'questions.id': 1},
     //     { '$set': {'questions.$.answered' : true, 'questions.$.sentOn': Date.now()}}
@@ -332,11 +364,61 @@ async function findMessage(){
     // console.log(smsTransactionMessage);
 }
  //findMessage();
-async function saveReply(){
+const sample = async ()=>{
+ 
+    try{
+        const transaction = await SMSTransaction.findById('6746b4ca63babbdc391ef57e');
+        console.log(transaction);
+        // https://setg.tesda.gov.ph/api/sms
+       
+        const res = await axios.post('https://setg.tesda.gov.ph/api/sms', transaction,
+          {
+            httpsAgent: agent
+          });
+          console.log(res);
+    }catch(error){
+        console.log(error);
+    }
+   
+}
+//  sample();
 
+const setSMSTransaction = async (req, res) => {
+    console.log("SET")
+    const number = req.body.recipient;
+    try{
+        const getSMSTransaction = await SMSTransaction.findOne({recipient: number, isOpen:true});
+        if(getSMSTransaction){
+            return res.status(400).json({recipient: number, message: "SMS Number has currently in a message transaction. Try again later."});
+        }
+        const smsTransaction = new SMSTransaction({recipient: number,isOpen:true, open_at: Date.now(), currentQuestionId: 1});
+        smsTransaction.save();
+        
+        for(var j = 0; j < 1;j++){
+            await sleep(2000);
+            for(var k = 0; k < questions[j].message.length; k++){
+                await sleep(2000);
+                await sendMessage(number,questions[j].message[k]);
+                
+            }
+        }
+
+        return res.status(200).json({recipient: number, message: "SMS Transaction Saved", transactionId: smsTransaction._id});
+    }catch(error){
+        return res.status(400).json({recipient: number, message: "SMS Transaction Failed", msg: error});
+    }
+ 
 }
 
-
+const sendSMSTransactionMessage = async (req, res) => {
+    const number = req.body.number;
+    try{
+        
+         return res.status(200).json({recipient: number, message: questions[j].message[k], msg: "Sent Successfully"});
+    }catch(error){
+        return res.status(400).json({recipient: number, message: "SMS Transaction Message Failed", msg: error});
+    }
+}
 
 
 
@@ -348,5 +430,7 @@ module.exports = {
     onNewMessage,
     sendMessage,
     sendSMS,
-    deleteAllMessageFromInbox
+    deleteAllMessageFromInbox,
+    setSMSTransaction,
+    sendSMSTransactionMessage
 }

@@ -7,6 +7,7 @@ const smsTransaction = new mongoose.Schema({
     close_at: {
         type: Date, default: null
     },
+    replyEndpoint: String,
     // questions:[
     //     {
     //         id: Number,
